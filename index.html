@@ -1,0 +1,155 @@
+
+<body>
+    <div class="frame" >
+        <h1>CPU</h1>
+        <div class="graph-content">
+            <canvas class="graph-bar" style="height: 10rem;" id="cpu"></canvas>
+        </div>
+    </div>
+    <div class="frame" >
+        <h1>MEMORY</h1>
+        <div class="graph-content">
+            <canvas class="graph-bar" style="height: 10rem;" id="ram"></canvas>
+            
+        </div>
+    </div>
+    <div class="frame" >
+        <h1>NETWORK</h1>
+        <div class="graph-content">
+            <canvas class="graph-bar" style="height: 10rem;" id="network"></canvas>
+            
+        </div>
+    </div>
+    <div class="frame" >
+        <h1>DISK</h1>
+        <div class="graph-content">
+            <canvas class="graph-bar" style="height: 10rem;" id="disk"></canvas>
+            
+        </div>
+    </div>
+    <style>
+        .frame{
+            width: 90%;
+            background: rgba(0,0,0,.3);
+            border-radius: 1rem;
+            margin-top: 1rem;
+            height: 16rem;
+        }
+        .graph-bar{
+            width: 100%;
+            color: white;
+            z-index: 100;
+        }
+        h1{
+            width: 100%;
+            height: 2.5rem;
+            text-indent: 1.5rem;
+            color: white;
+        }
+        .graph-content{
+            width: 95%;
+            margin-left: 2.5%;
+            height: 60%;
+            background: rgba(0,0,0,.5);
+            border-radius: 1rem;
+            overflow: hidden;
+            margin-bottom: 10%;
+            margin-top: 0;
+        }
+    </style>
+</body>
+<style>
+    body{
+        background:rgb(25,25,50);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 1rem;
+        padding-bottom: 1rem
+    };
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    
+
+    const timeLength = [];
+    const cpuData = [];
+    const ramData = [];
+    const diskData = [];
+    const networkData = [];
+
+    function dateFromStamp(stamp){
+        const date = new Date(stamp);
+        const month = String(date.getMonth() + 1).padStart(2, '0'); 
+        const day = String(date.getDate()).padStart(2, '0');
+        const hour = String(date.getHours()).padStart(2, '0');
+        const minute = String(date.getMinutes()).padStart(2, '0');
+        const second = String(date.getSeconds()).padStart(2, '0');
+        return `${day} ${hour}:${minute}:${second}`;
+
+    }
+
+    // Create a new Chart instance
+    let host = "0.0.0.0"
+    let port = "46401"
+    fetch(`http://${host}:${port}/data`,{
+        method:"GET",
+    })
+    .then(response => {
+        if (response.ok){
+            response.json().then(data => {
+
+                for(let index in data){
+                    let info = data[index]
+                    cpuData.push(info[0]*100);
+                    ramData.push(info[1]*100);
+                    diskData.push(info[2]*100);
+                    networkData.push(info[3]*100);
+                    timeLength.push(dateFromStamp(info[4]));
+                }
+
+                function create_chart(ctx,dt){
+                    const c = new Chart(ctx.getContext("2d"), {
+                        type: 'line', // Specify the chart type (line chart)
+                        data: {
+                            labels: timeLength, // X-axis labels
+                            datasets: [{
+                                label: '', // The label for the dataset
+                                data: dt, // Y-axis data
+                                fill: false, // Set to false to not fill the area under the line
+                                borderColor: 'rgba(75, 192, 192, 1)', // Line color
+                                tension: 0, // Line curve tension
+                                pointBackgroundColor: 'rgba(75, 192, 192, 1)', // Point color
+                                borderWidth: 2
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                },
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: false, // Y-axis starts from zero
+                                }
+                            }
+                        }
+                    });
+                }
+                let ctx = document.getElementById('cpu');
+                create_chart(ctx,cpuData)
+                
+
+                ctx = document.getElementById('ram');
+                create_chart(ctx,ramData)
+                ctx = document.getElementById('disk');
+                create_chart(ctx,diskData)
+                ctx = document.getElementById('network');
+                create_chart(ctx,networkData)
+            })
+        }
+    })
+   
+</script>
