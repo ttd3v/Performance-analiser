@@ -1,4 +1,2 @@
 # Performance-analizer
-# Performance-Analiser
-# Performance-Analiser
-# Performance-Analiser
+It shows your past hardware status as task manager does, in percentage.
